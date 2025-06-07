@@ -87,6 +87,8 @@ export class YouTubeService {
 				langCode
 			);
 
+			if (!captions) throw new Error('No captions available');
+
 			const response = {
 				url,
 				videoId,
@@ -152,10 +154,10 @@ export class YouTubeService {
 			data?.captions?.playerCaptionsTracklistRenderer?.captionTracks ||
 			[];
 		const captionTrack = langCode
-					? captionTracks.find((track: any) =>
-							track.languageCode.includes(langCode)
-					) || captionTracks[0]
-					: captionTracks[0];
+			? captionTracks.find((track: any) =>
+					track.languageCode.includes(langCode)
+			  ) || captionTracks[0]
+			: captionTracks[0];
 
 		if (!captionTrack) throw new Error('No captions available');
 

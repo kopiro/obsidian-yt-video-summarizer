@@ -52,10 +52,10 @@ export class YouTubeSummarizerPlugin extends Plugin {
 
 		// Initialize youtube service
 		this.youtubeService = new YouTubeService();
-	
+
 		// Load settings
 		this.settings = await this.storageService.getSettings();
-		
+
 		// Initialize prompt service
 		this.promptService = new PromptService(this.settings.customPrompt);
 
@@ -163,12 +163,14 @@ export class YouTubeSummarizerPlugin extends Plugin {
 			// Fetch the video transcript
 			new Notice('Fetching video transcript...');
 			const transcript = await this.youtubeService.fetchTranscript(url);
-			const thumbnailUrl = YouTubeService.getThumbnailUrl(
-				transcript.videoId
-			);
+			// const thumbnailUrl = YouTubeService.getThumbnailUrl(
+			// 	transcript.videoId
+			// );
 
 			//Build the prompt for LLM
-			const prompt = this.promptService.buildPrompt(transcript.lines.map((line) => line.text).join(' '));
+			const prompt = this.promptService.buildPrompt(
+				transcript.lines.map((line) => line.text).join(' ')
+			);
 			// Generate the summary using Gemini service
 			new Notice('Generating summary...');
 			const geminiSummary = await this.geminiService.summarize(prompt);
@@ -176,7 +178,6 @@ export class YouTubeSummarizerPlugin extends Plugin {
 			// Create the summary content
 			const summary = this.generateSummary(
 				transcript,
-				thumbnailUrl,
 				url,
 				geminiSummary
 			);
@@ -203,18 +204,11 @@ export class YouTubeSummarizerPlugin extends Plugin {
 	 */
 	private generateSummary(
 		transcript: TranscriptResponse,
-		thumbnailUrl: string,
 		url: string,
 		summaryText: string
 	): string {
-		// Initialize summary parts with title, thumbnail, video link, author, and summary
-		const summaryParts = [
-			`# ${transcript.title}\n`,
-			`![Thumbnail](${thumbnailUrl})\n`,
-			`👤 [${transcript.author}](${transcript.channelUrl})  🔗 [Watch video](${url})`,
-			summaryText,
-		];
-
+		const iframeCode = `<iframe src="https://www.youtube.com/embed/${transcript.videoId}?feature=oembed" height="113" width="200" allowfullscreen="" allow="fullscreen" style="aspect-ratio: 1.76991 / 1; width: 100%; height: 100%;"></iframe>`;
+		const summaryParts = [`${iframeCode}`, summaryText];
 		return summaryParts.join('\n');
 	}
 }
